@@ -8,7 +8,7 @@ import os
 # ==========================================
 st.set_page_config(page_title="AI 海龜湯情境猜謎系統", layout="wide", page_icon="🐢")
 
-# ✅ 移除 unsafe_allow_html=True，修正 st.html 錯誤
+# ✅ 移除 unsafe_allow_html=True，修正 st.html 錯誤，並徹底清除隱形字元
 st.html("""
 <style>
 /* ===== 全站背景 ===== */
@@ -114,7 +114,7 @@ if st.session_state.page == "home":
     st.title("🐢 AI 海龜湯遊戲系統")
     st.markdown("## 歡迎來到情境猜謎的世界！")
     
-    # ✅ 修正：確保三引號完好包裹，防止文字裸奔報錯
+    # ✅ 確保三引號完好包裹與標準空格
     st.markdown("""
     海龜湯是一種考驗邏輯思考與想像力的遊戲。
     你將看到一個表面看似不合理、不完整的神祕事件，你需要透過不斷向 AI 主持人提問來抽絲剝繭，最終拼湊出完整的真相。
@@ -206,7 +206,7 @@ elif st.session_state.page == "game":
             """
         else:
             defense_prompt = f"""
-            你現在是專業海龜湯主持人。
+            快來比對真相！你現在是專業海龜湯主持人。
             題目：{riddle_text}
             真相：{secret_answer_text}
             玩家提交了真相推論：{user_input}
@@ -221,8 +221,8 @@ elif st.session_state.page == "game":
             formatted_history.append({"role": "user" if msg["role"] == "user" else "model", "parts": [msg["content"]]})
 
         try:
-            # ✅ 使用相容性最高的通用標準名稱
-            model = genai.GenerativeModel('gemini-1.5-flash')
+            # ✅ 升級至官方最新、回應更精準、速度更快的 gemini-2.5-flash 模型
+            model = genai.GenerativeModel('gemini-2.5-flash')
             chat = model.start_chat(history=formatted_history)
 
             with st.spinner("主持人思考中..."):
@@ -235,13 +235,3 @@ elif st.session_state.page == "game":
                 if "🎉 恭喜完全答對！" in ai_reply:
                     if selected_title not in st.session_state.completed_riddles:
                         st.session_state.completed_riddles.append(selected_title)
-
-                with st.chat_message("assistant", avatar="🍊"):
-                    st.markdown(ai_reply)
-                st.session_state.chat_history.append({"role": "assistant", "content": ai_reply})
-
-                if selected_title in st.session_state.completed_riddles:
-                    st.session_state.completed_histories[selected_title] = list(st.session_state.chat_history)
-
-        except Exception as e:
-            st.error(f"Gemini 連線錯誤: {e}。請確認您的 API Key 是否有效且具備權限。")
