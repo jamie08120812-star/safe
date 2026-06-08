@@ -235,3 +235,13 @@ elif st.session_state.page == "game":
                 if "🎉 恭喜完全答對！" in ai_reply:
                     if selected_title not in st.session_state.completed_riddles:
                         st.session_state.completed_riddles.append(selected_title)
+
+                with st.chat_message("assistant", avatar="🍊"):
+                    st.markdown(ai_reply)
+                st.session_state.chat_history.append({"role": "assistant", "content": ai_reply})
+
+                if selected_title in st.session_state.completed_riddles:
+                    st.session_state.completed_histories[selected_title] = list(st.session_state.chat_history)
+
+        except Exception as e:
+            st.error(f"Gemini 連線錯誤: {e}。請確認您的 API Key 是否有效且具備權限。")
