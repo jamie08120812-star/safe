@@ -252,7 +252,8 @@ elif st.session_state.page == "game":
             formatted_history.append({"role": "user" if msg["role"] == "user" else "model", "parts": [msg["content"]]})
 
         try:
-            model = genai.GenerativeModel('gemini-1.5-flash')
+            # 使用最穩定且支援度最高的最新後綴字串
+            model = genai.GenerativeModel('gemini-1.5-flash-latest')
             chat = model.start_chat(history=formatted_history)
 
             with st.spinner("主持人思考中..."):
