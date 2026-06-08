@@ -8,7 +8,7 @@ import os
 # ==========================================
 st.set_page_config(page_title="AI 海龜湯情境猜謎系統", layout="wide", page_icon="🐢")
 
-# 修正：st.html 不需要 unsafe_allow_html=True
+# ✅ 移除 unsafe_allow_html=True，修正 st.html 錯誤
 st.html("""
 <style>
 /* ===== 全站背景 ===== */
@@ -61,10 +61,6 @@ section[data-testid="stSidebar"] * { color: white !important; }
     border-radius:12px !important;
     font-weight:bold !important;
 }
-.stButton button:hover{
-    transform: translateY(-2px) !important;
-    box-shadow: 0 0 15px #00d4ff, 0 0 50px #8b5cf6 !important;
-}
 
 div[data-baseweb="select"] *, div[data-baseweb="popover"] *, [data-baseweb="menu"] * {
     color: #000000 !important;
@@ -72,7 +68,7 @@ div[data-baseweb="select"] *, div[data-baseweb="popover"] *, [data-baseweb="menu
 </style>
 """)
 
-# ---- 核心資安：從 Streamlit Cloud Secrets 讀取金鑰 ----
+# ---- 安全讀取金鑰 ----
 api_key = ""
 if "Gemini_Key" in st.secrets:
     api_key = st.secrets["Gemini_Key"]
@@ -87,13 +83,13 @@ if not api_key:
 genai.configure(api_key=api_key)
 
 # ==========================================
-# 2. 讀取外部題庫與初始化成就紀錄
+# 2. 讀取外部題庫與初始化狀態
 # ==========================================
 try:
     with open('riddles.json', 'r', encoding='utf-8') as f:
         riddle_bank = json.load(f)
 except FileNotFoundError:
-    st.error("❌ 找不到題庫檔案 'riddles.json'！")
+    st.error("❌ 找不到題庫檔案 'riddles.json'！請確認檔案已上傳至 GitHub。")
     st.stop()
 
 if "completed_riddles" not in st.session_state:
@@ -112,13 +108,13 @@ def navigate_to_solved_riddle(title):
         st.session_state.chat_history = []
 
 # ==========================================
-# 3. 頁面分流架構 (首頁 vs 遊戲頁)
+# 3. 頁面分流架構
 # ==========================================
 if st.session_state.page == "home":
     st.title("🐢 AI 海龜湯遊戲系統")
     st.markdown("## 歡迎來到情境猜謎的世界！")
     
-    # 修正：確保多行文字正確包在 st.markdown 的引號內，避免排版與語法錯誤
+    # ✅ 修正：確保三引號完好包裹，防止文字裸奔報錯
     st.markdown("""
     海龜湯是一種考驗邏輯思考與想像力的遊戲。
     你將看到一個表面看似不合理、不完整的神祕事件，你需要透過不斷向 AI 主持人提問來抽絲剝繭，最終拼湊出完整的真相。
@@ -225,7 +221,7 @@ elif st.session_state.page == "game":
             formatted_history.append({"role": "user" if msg["role"] == "user" else "model", "parts": [msg["content"]]})
 
         try:
-            # 修正：將模型名稱改為正確的 'gemini-1.5-flash'
+            # ✅ 使用相容性最高的通用標準名稱
             model = genai.GenerativeModel('gemini-1.5-flash')
             chat = model.start_chat(history=formatted_history)
 
@@ -248,4 +244,4 @@ elif st.session_state.page == "game":
                     st.session_state.completed_histories[selected_title] = list(st.session_state.chat_history)
 
         except Exception as e:
-            st.error(f"Gemini 連線錯誤: {e}")
+            st.error(f"Gemini 連線錯誤: {e}。請確認您的 API Key 是否有效且具備權限。")
